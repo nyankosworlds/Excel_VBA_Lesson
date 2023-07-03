@@ -1,0 +1,25 @@
+Sub 練習5()
+'第4回　https://excel-ubara.com/excelvba1r/EXCELVBA504.html
+'値がふたつ与えられ、四則計算する。
+
+  'Range("C2") = Range("A2") + Range("B2")
+    Cells(2, 3) = Cells(2, 1) + Cells(2, 2)
+    Cells(2, 4) = Cells(2, 1) - Cells(2, 2)
+    Cells(2, 5) = Cells(2, 1) * Cells(2, 2)
+    Cells(2, 6) = Cells(2, 1) / Cells(2, 2)
+    
+End Sub
+
+Sub 練習5Func()
+    '自主練　関数の使い方
+    Cells(2, 3) = WorksheetFunction.Sum(Range("A2:B2"))
+
+
+End Sub
+
+
+Sub 練習6()
+'第4回　https://excel-ubara.com/excelvba1r/EXCELVBA504.html
+'税抜き価格　数量１　数量２が与えられ、税抜き小計　税込み小計を出す
+    Cells(2, 4) = (Cells(2, 3) + Cells(2, 2)) * Cells(2, 1)
+    Cells(2, 5) = Cells(2, 4) * 1.08
