@@ -1,0 +1,9 @@
+Sub 練習7()
+'第5回　https://excel-ubara.com/excelvba1r/EXCELVBA505.html
+'単価と数量から金額を出す
+    Dim i As Long
+    For i = 2 To 11
+        Cells(i, 3) = Cells(i, 1) * Cells(i, 2)
+    Next
+
+End Sub
