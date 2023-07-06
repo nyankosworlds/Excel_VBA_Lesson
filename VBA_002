@@ -1,0 +1,24 @@
+'#VBA100本ノック 2本目
+'「Sheet1」のA1:C5のセル範囲を、「Sheet2」のA1:C5にコピーしてください。
+'数式は消して値でコピー､書式もコピーしてください｡
+'※書式は「セルの書式設定」で設定可能なもの（ロックは除く）。
+'入力規則やメモ（旧コメント）は書式ではありません。
+'「ふりがな」は任意で
+
+
+Sub VBA002()
+    '学び　ペースト時のオプションは1個しか選択できないので、複数したかったらその回数分しないといけない
+    
+    '範囲をクリップボードに取得
+    Worksheets("Sheet1").Range("A1:C5").Copy
+    
+    '値を張り付け
+    Worksheets("Sheet2").Range("A1").PasteSpecial Paste:=xlPasteValues
+    'フォーマットを張り付け
+    Worksheets("Sheet2").Range("A1").PasteSpecial Paste:=xlPasteFormats
+    '範囲選択を解除
+    Application.CutCopyMode = False
+    'A1セルを選択した状態にしておく。
+    Range("A1").Select
+    
+End Sub
