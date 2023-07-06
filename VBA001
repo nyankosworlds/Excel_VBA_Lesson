@@ -4,9 +4,38 @@ Sub VBA001()
     Dim saki As Range
     
     Set moto = Worksheets("Sheet1").Range("A1:C5")
-    Set saki = Worksheets("Sheet2").Range("A1:C5")
+    Set saki = Worksheets("Sheet2").Range("A1")
         
     moto.Copy saki
 
 End Sub
+------------------------------------------------------------------------------
+Sub VBA001_2()
+    
+       
+    Range("A1:C5").Copy Destination:=Sheets("sheet2").Range("A1")
+    'Destination:= はコピー先のセルを指定するための命令。
+    '同じシート内ならば省略できる。
+    
+    
+End Sub
 
+------------------------------------------------------------------------------
+Sub VBA001_3()
+    
+    With ThisWorkbook
+        .Worksheets("Sheet1").Range("A1:C5").Copy .Worksheets("Sheet2").Range("A1")
+    End With
+
+    
+End Sub
+------------------------------------------------------------------------------
+
+Sub VBA001_模範解答()
+
+    Worksheets("Sheet1").Range("A1:C5").Copy
+    Worksheets("Sheet2").Range("A1").PasteSpecial Paste:=xlPasteAll
+    Application.CutCopyMode = False 'これを忘れるとコピーの点々が残ります。
+
+
+End Sub
