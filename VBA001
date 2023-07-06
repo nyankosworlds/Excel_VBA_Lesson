@@ -1,0 +1,12 @@
+Sub VBA001()
+    
+    Dim moto As Range
+    Dim saki As Range
+    
+    Set moto = Worksheets("Sheet1").Range("A1:C5")
+    Set saki = Worksheets("Sheet2").Range("A1:C5")
+        
+    moto.Copy saki
+
+End Sub
+
