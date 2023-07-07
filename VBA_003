@@ -1,0 +1,65 @@
+'#VBA100本ノック 3本目
+'画像のように1行目に見出し､A列に№が入っています｡
+'№行数およびデータ行数は毎回変化します｡
+'この表の見出し（1行目）と№（A列）を残して、データ部分のみ値を消去してください。
+'※シートはアクティブシート
+
+------------------------------------------------------------------------------
+
+'CurrentRegion 空白の行と空白の列の任意の組み合わせで囲まれた範囲です。
+'Resize  元の範囲を拡張・縮小、左上のセルが基準になる
+'Offset   もともとの範囲から移動　（1,2）で縦に１右に２ズレる
+'Intersect  複数セル範囲の、重なっている部分のセル範囲を取得　ベン図の真ん中みたいな
+------------------------------------------------------------------------------
+
+Sub VBA003()
+    '範囲を設定してループで””を入れていけばよいと思う
+    'めっちゃテキストのサンプルコードのノート見た
+    '範囲
+    
+    Dim i As Long, Last As Long
+    Last = Cells(Rows.Count, 2).End(xlUp).Row
+    For i = 2 To 4
+    '見出しの分
+        For j = 2 To Last
+        '縦の分
+            'たて、よこで　けす 消すときは　.ClearContents　をつかう
+            'Cells(j, i) = ""
+            Cells(j, i).ClearContents
+        Next j
+    Next i
+        Range("A1").Select
+End Sub
+------------------------------------------------------------------------------
+
+Sub VBA003_2()
+    Range(Cells(2, 2), Cells(Cells(1, 1).End(xlDown).Row, Cells(1, 1).End(xlToRight).Column)).ClearContents
+End Sub
+------------------------------------------------------------------------------
+
+Sub VBA003_Other()
+    'CurrentRegionプロパティ 空白の行と空白の列の任意の組み合わせで囲まれた範囲です。
+    Range("A1").CurrentRegion.Offset(1, 1).ClearContents
+    Range("A1").Select
+End Sub
+
+------------------------------------------------------------------------------
+
+Sub VBA003_公式解答()
+    Range("A1").CurrentRegion.Offset(1, 1).ClearContents   
+End Sub
+------------------------------------------------------------------------------
+
+Sub VBA003_公式解答2()
+   Dim lastRow As Long
+   lastRow = Cells(Rows.Count, 1).End(xlUp).Row
+   Range(Range("B2"), Cells(lastRow, "D")).ClearContents
+End Sub
+
+------------------------------------------------------------------------------
+
+Sub VBA003_公式解答3()
+    With ActiveSheet.Range("A1").CurrentRegion
+        .Offset(1, 1).Resize(.Rows.Count - 1, .Columns.Count - 1).ClearContents
+    End With
+End Sub
