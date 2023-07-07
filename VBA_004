@@ -1,0 +1,80 @@
+'------------------------------------------------------------------------------
+'#VBA100本ノック 4本目
+'画像のように1行目に見出し､A列に№が入っています｡
+'この表範囲の一部には計算式が入っています｡
+'（画像の最下行とD列には数式が入っています。）
+'データ行数は毎回変化します｡
+'見出し行とA列№と計算式は残し､定数値だけを消去してください｡
+'※画像ならB2: C11を消去
+
+
+'HasFormulaプロパティで計算式の有無を判定
+'SpecialCells(xlCellTypeConstants)
+'これで定数値の入っているセルだけを取得することができます｡
+'該当なければエラーポップアップ上がってしまうので、
+'その前に　On Error Resume Nextを記載しておくひつようあり
+
+'------------------------------------------------------------------------------
+
+Sub VBA004()
+    Dim i As Long
+    Dim j As Long
+    Dim LastRow As Long
+    LastRow = Cells(Rows.Count, 2).End(xlUp).Row - 1
+
+        For i = 2 To 3
+            For j = 2 To LastRow
+                Cells(j, i).ClearContents
+            Next j
+        Next i
+        
+End Sub
+
+
+'------------------------------------------------------------------------------
+
+
+Sub VBA004_Other()
+'この書き方はちょっとあんま美しくないのかもインデントも△
+    With ThisWorkbool.Worksheets("Sheet1")
+    Dim end_row As Long
+    end_row = .Cells(Rows.Count, "A").End(xlUp).Row
+    Range(.Cells(2, "B"), .Cells(end_row - 1, "C")).ClearContents
+    End With
+End Sub
+
+    
+'------------------------------------------------------------------------------
+Sub VBA004_Other()
+    '力押しって感じ
+    Application.ScreenUpdating = False
+    Dim i As Long
+    With Sheets("Sheet1")
+        For i = 2 To .Cells(.Rows.Count, 1).End(xlUp).Row - 1
+            .Cells(i, 2).ClearContents
+            .Cells(i, 3).ClearContents
+        Next i
+    End With
+End Sub
+
+'------------------------------------------------------------------------------
+Sub VBA004_公式解答()
+    Dim rng As Range
+    Set rng = Range("A1").CurrentRegion.Offset(1, 1)
+    On Error Resume Next
+    rng.SpecialCells(xlCellTypeConstants).ClearContents
+End Sub
+
+'HasFormulaプロパティで計算式の有無を判定
+
+Sub VBA004_公式解答2()
+    With Range("A1").CurrentRegion
+        With Intersect(.Cells, .Offset(1, 1))
+            Intersect(.Cells, .Offset(-1, -1)).ClearContents
+        End With
+    End With
+End Sub
+
+
+
+
