@@ -1,0 +1,54 @@
+'#VBA100本ノック 5本目
+'画像のようにB2から始まる表があります｡
+'B列×C列を計算した値をD列に入れ、通貨\のカンマ編集で表示してください。
+'ただしB列またはC列が空欄の場合は空欄表示にしてください｡
+'例.D3にはB3×C3の計算結果の値を「\234,099」で表示、D5は空欄
+'※ブック・シートは任意
+'------------------------------------------------------------
+
+Sub VBA_005()
+
+Dim h As Long
+
+    For h = 3 To Range("B2").CurrentRegion.Rows.Count + 1 'たての行　上が1行空いてるので＋１にしてる（はず）
+
+        If Cells(h, 2) <> "" And Cells(h, 3) <> "" Then
+        
+            Cells(h, 4) = Cells(h, 2) * Cells(h, 3)
+            Cells(h, 4).NumberFormatLocal = "\#,###"
+            
+        Else
+            Cells(h, 4) = ""
+        End If
+        
+    Next h
+
+End Sub
+
+
+'------------------------------------------------------------
+
+Sub VBA_005_Sample()
+    Dim i As Long
+    For i = 3 To Range("B2").CurrentRegion.Rows.Count + 1
+        If Cells(i, 2) = "" Or Cells(i, 3) = "" Then
+            Cells(i, 4) = ""
+        Else
+            Cells(i, 4) = Cells(i, 2) * Cells(i, 3)
+        End If
+    Next
+    Columns("D").NumberFormatLocal = "\#,##0"
+End Sub
+
+'------------------------------------------------------------
+
+
+Sub VBA_005_Sample2()
+ With ActiveSheet
+    Debug.Print .UsedRange.Item(.UsedRange.Count).Row
+    Debug.Print .Cells.SpecialCells(xlCellTypeLastCell).Row
+    Debug.Print WorksheetFunction.Max(.Cells(.Rows.Count, 2).End(xlUp).Row, .Cells(.Rows.Count, 3).End(xlUp).Row)
+    Debug.Print Range("B:C").Find(What:="*", LookIn:=xlValues, SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+End With
+
+End Sub
