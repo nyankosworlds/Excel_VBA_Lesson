@@ -1,0 +1,148 @@
+'#VBA100本ノック 8本目
+'「成績表」シートに5教科の成績表があります。
+'以下の2条件を満たした者が合格となります｡
+'・5教科合計が350点以上
+'・全ての科目が50点以上
+'G列に、合格者に対しては「合格」と出力し、不合格は空欄にしてください。
+
+
+Sub vba_008シラベナガラカイタヨ()
+
+Dim h As Long
+Dim w As Long
+Dim Flag As Boolean
+Dim sum As Long
+
+    
+    For h = 2 To Range("A1").CurrentRegion.Rows.Count()
+        sum = sumall(h)
+        
+        If sum >= 350 Then
+            
+           'For w = 2 To 6
+                If Cells(h, 2) > 50 _
+                    And Cells(h, 3) > 50 _
+                    And Cells(h, 4) > 50 _
+                    And Cells(h, 5) > 50 _
+                    And Cells(h, 6) > 50 Then
+                Flag = True
+                'Cells(h, 7) = "合格"
+                End If
+            'Next w
+            
+         End If
+    
+        Call vba_008_print(Flag, h)
+        Flag = False ' 初期化
+    
+    Next h
+
+End Sub
+
+Sub vba_008_print(Flag As Boolean, ByVal h As Long)
+    If Flag Then
+        Cells(h, 7) = "合格"
+    Else
+        Cells(h, 7) = "不合格"
+    End If
+End Sub
+
+Function sumall(h)
+
+    For w = 2 To 6
+        sum = sum + Cells(h, w).Value
+    Next w
+    
+    sumall = sum
+End Function
+
+
+'＝＝＝GPT君による書き直し＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+Sub vba_008()
+    Dim h As Long
+    Dim w As Long
+    Dim Flag As Boolean
+    Dim sum As Long
+
+    For h = 2 To Range("A1").CurrentRegion.Rows.Count()
+        sum = sumall_gpt(h)
+
+        If sum >= 350 Then
+            'このIf文がぶさいく。 駄目なの見つけたら駄目としてExitする方向性で考えたらスマートに。
+            If Cells(h, 2) > 50 And Cells(h, 3) > 50 And Cells(h, 4) > 50 And Cells(h, 5) > 50 And Cells(h, 6) > 50 Then
+                Flag = True
+            End If
+        End If
+
+        Call vba_008_print_gpt(Flag, h)
+        Flag = False ' 初期化
+
+    Next h
+End Sub
+
+Sub vba_008_print_gpt(Flag As Boolean, ByVal h As Long)
+    If Flag Then
+        Cells(h, 7) = "合格"
+    Else
+        Cells(h, 7) = ""
+    End If
+End Sub
+
+Function sumall_gpt(h)
+    Dim w As Long
+    Dim sum As Long
+    
+    For w = 2 To 6
+        sum = sum + Cells(h, w).Value
+    Next w
+    
+    sumall_gpt = sum
+End Function
+
+
+'＝＝＝GPT君による書き直しここまで＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_08_01()
+    Dim ws As Worksheet
+    Set ws = Worksheets("成績表")
+  
+    Dim i As Long, j As Long, t As Long
+    For i = 2 To ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+        t = 0
+        For j = 2 To 6
+            If ws.Cells(i, j) < 50 Then
+                t = 0
+                Exit For '50点以下があったときにExitする
+            End If
+            t = t + ws.Cells(i, j)
+        Next
+        ws.Cells(i, 7) = ""    'Exitしたときここにくる。
+                               '50点いかないときはt＝0でここにくる。50点以下がない時はtに科目合計が入っている
+        If t >= 350 Then
+            ws.Cells(i, 7) = "合格"
+        End If
+    Next
+End Sub
+
+
+ Sub VBA100_08_02()
+    Dim ws As Worksheet
+    Set ws = Worksheets("成績表")
+  
+    Dim rng As Range
+    Set rng = ws.Range("A1").CurrentRegion
+    Set rng = Intersect(rng, rng.Offset(1))
+    rng.Columns("G").ClearContents
+  
+    Dim r As Range
+    For Each r In rng.Rows
+        With WorksheetFunction
+            If .sum(r.Offset(, 1).Resize(, 5)) >= 350 And _
+               .CountIf(r.Offset(, 1).Resize(, 5), ">=50") = 5 Then
+                r.Columns("G") = "合格"
+            End If
+        End With
+    Next
+End Sub
+
+
