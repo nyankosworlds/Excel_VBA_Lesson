@@ -1,0 +1,136 @@
+Option Explicit
+
+'#VBA100本ノック 9本目
+'「成績表」シートに5教科の成績とG列に合否判定があります。
+'「合格者」シートを新規作成し、合格者の氏名だけをA列に列挙してください。
+'※点数は非公開なので「合格者」シートには間違っても出力しないでください。
+'※何度でも実行できるようにしてください｡
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+Sub VBA_009()
+    Dim ws1 As Worksheet
+    Dim ws2 As Worksheet
+    Set ws1 = Worksheets(1)
+    ws1.Name = "成績表"
+    
+    Dim i As Long
+    
+    '各種エラーを出さないようにする
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    
+   'シート「合格者」を削除
+    On Error Resume Next
+    Worksheets("合格者").Delete
+    On Error GoTo 0
+    
+    '合格者シートをあらたに作成
+    On Error Resume Next
+    Sheets.Add After:=Sheets("成績表")
+    ActiveSheet.Name = "合格者"
+
+    'オートフィルターで合格者をしぼる
+    ws1.Range("A1").AutoFilter 7, "合格"
+     
+    '合格者シートのA１に氏名をコピー
+    Range(Range("A1"), Cells(Rows.Count, 1).End(xlUp)).Copy Sheets("合格者").Range("A1")
+    
+    'オートフィルターを戻しておく
+    ws1.Range("A1").AutoFilter
+        
+    '各種エラーを出る用に戻す
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+
+End Sub
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_09_01()
+    Dim wsIn As Worksheet
+    Dim wsOut As Worksheet
+  
+    On Error Resume Next
+    Application.DisplayAlerts = False
+    Worksheets("合格者").Delete
+    Application.DisplayAlerts = True
+    On Error GoTo 0
+  
+    Set wsIn = Worksheets("成績表")
+    Set wsOut = Worksheets.Add(After:=wsIn)
+    wsOut.Name = "合格者"
+  
+    wsIn.AutoFilterMode = False
+    With wsIn.Range("A1").CurrentRegion
+        .AutoFilter Field:=7, Criteria1:="合格"
+        .Columns(1).Copy wsOut.Range("A1")
+    End With
+    wsIn.AutoFilterMode = False
+End Sub
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Function getSheet(ByVal Name As String, _
+                  Optional ByVal Before As Object, _
+                  Optional ByVal After As Object) As Worksheet
+    For Each getSheet In Worksheets
+        If getSheet.Name = Name Then
+            getSheet.Cells.Clear
+            Exit Function
+        End If
+    Next
+  
+    If Not Before Is Nothing Then
+        Set getSheet = Worksheets.Add(Before:=Before)
+    ElseIf Not After Is Nothing Then
+        Set getSheet = Worksheets.Add(After:=After)
+    Else
+        Set getSheet = Worksheets.Add
+    End If
+  
+    getSheet.Name = "合格者"
+End Function
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_09_02()
+    Dim wsIn As Worksheet
+    Dim wsOut As Worksheet
+    Set wsIn = Worksheets("成績表")
+    Set wsOut = getSheet(Name:="合格者", After:=wsIn)
+  
+    Dim ary
+    ary = wsIn.Range("A1").CurrentRegion
+  
+    Dim i As Long, j As Long
+    wsOut.Range("A1") = "氏名"
+    j = 1
+    For i = LBound(ary) + 1 To UBound(ary)
+        If ary(i, 7) = "合格" Then
+            j = j + 1
+            wsOut.Cells(j, 1) = wsIn.Cells(i, 1)
+        End If
+    Next
+End Sub
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_09_03()
+    Dim wsIn As Worksheet
+    Dim wsOut As Worksheet
+    Set wsIn = Worksheets("成績表")
+    Set wsOut = getSheet(Name:="合格者", After:=wsIn)
+  
+    Dim ary1, ary2
+    ary1 = Intersect(wsIn.Range("A1").CurrentRegion, wsIn.Columns("A"))
+    ary2 = Intersect(wsIn.Range("A1").CurrentRegion, wsIn.Columns("G"))
+  
+    Dim i As Long
+    For i = LBound(ary2) + 1 To UBound(ary2)
+        If ary2(i, 1) <> "合格" Then
+            ary1(i, 1) = ""
+        End If
+    Next
+  
+    wsOut.Range("A1").Resize(UBound(ary1) - LBound(ary1) + 1) = ary1
+    On Error Resume Next
+    wsOut.Cells.SpecialCells(xlCellTypeBlanks).Delete Shift:=xlUp
+End Sub
+
+
