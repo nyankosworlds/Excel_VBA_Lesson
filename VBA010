@@ -1,0 +1,101 @@
+'#VBA100本ノック 10本目
+'画像のように「受注」シートに今月の受注データがあります。
+'受注数が空欄かつ備考欄に「削除」または「不要」の文字が含まれている行を削除してください。
+'行の削除は行全体を削除してください｡
+'サンプルでは5行目と10行目を削除
+
+Sub VBA_010()
+Dim i As Long
+
+    'シートの確認
+     For i = 1 To Sheets.Count
+        If Sheets(i).Name = "受注" Then
+        
+            'オートフィルター
+            Range("A1").AutoFilter 3, ""
+            Range("A1").AutoFilter 4, "=*削除*", xlOr, "=*不要*"
+            '見つけたセルを含む行（row）を選択し、deleteする
+            'そのときにヘッダはけさないこと。
+            
+            Range("A1").CurrentRegion.Offset(1, 0).Select
+            
+            'Range(Range("A1"), Cells(Rows.Count, 4).End(xlUp)).Select
+                            
+            '各種エラーを出さないようにする
+            Application.ScreenUpdating = False
+            Application.DisplayAlerts = False
+            
+            On Error Resume Next
+            Selection.Delete
+        
+            '各種エラーを出る用に戻す
+            Application.ScreenUpdating = True
+            Application.DisplayAlerts = True
+        
+            'オートフィルター解除＆A1選択状態にする
+            Range("A1").AutoFilter
+            Range("A1").Select
+        Else
+        '個々の制御がへん
+            MsgBox "受注シートがありません"
+            Exit Sub
+        End If
+    Next i
+
+End Sub
+
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+Sub VBA100_10_01_かきうつし()
+    Dim ws As Worksheet
+    Set ws = Worksheets("受注")
+    
+    Application.ScreenUpdating = False
+    ws.AutoFilterMode = False
+    
+    Dim rng As Range
+    With ws.Range("A1").CurrentRegion
+        .AutoFilter field:=3, Criteria1:=""
+        .AutoFilter field:=4, Criteria1:="*削除*", Operator:=xlOr, Criteria2:="*不要*"
+        Set rng = Intersect(.Offset(1), .SpecialCells(xlCellTypeVisible))
+
+    If Not rng Is Nothing Then rng.EntireRow.Delete
+    End With
+    
+    ws.AutoFilterMode = False
+
+    Application.ScreenUpdating = True
+
+End Sub
+
+'Set rng = Intersect(.Offset(1), .SpecialCells(xlCellTypeVisible))
+'このSpecialCellsは見出し行を含んでいるので必ず1件は存在するのでエラーにはなりません｡
+'フィルターで絞り込んだ結果と､元の表範囲のデータ部との交差範囲を求めています｡
+'If Not rng Is Nothing Then rng.EntireRow.Delete
+'削除対象が無い場合はNothingになりますので､存在する場合だけ削除しています｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_10_03()
+    Dim ws As Worksheet
+    Set ws = Worksheets("受注")
+  
+    Dim rng As Range
+    Dim i As Long
+    For i = 2 To ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+        If ws.Cells(i, 3).Value = "" Then
+            If ws.Cells(i, 4).Value Like "*削除*" Or _
+               ws.Cells(i, 4).Value Like "*不要*" Then
+                If rng Is Nothing Then
+                    Set rng = ws.Rows(i)
+                Else
+                    Set rng = Union(rng, ws.Rows(i))
+                End If
+            End If
+        End If
+    Next
+  
+    If Not rng Is Nothing Then
+        rng.EntireRow.Delete
+    End If
+End Sub
+
