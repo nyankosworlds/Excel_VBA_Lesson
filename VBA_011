@@ -1,0 +1,89 @@
+'#VBA100本ノック 11本目
+'11…同じ数字が並んでいる、これは結合したのか、、、
+'
+'画像のようにシートにはところどころにセル結合があります｡
+'これは放置しておく訳にはいきません｡
+'セル結合されているセルには、メモ（旧コメント）で警告文を出しましょう。
+'※シートは任意､警告文はご随意に
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+'セル結合したものは左上のセル番号になるので
+'実際のセルの位置（結合してない）とセル名が一致していればOK
+'一致しないときは、セル名を指定して警告する
+'セル名を一時的に変数で持ち、Currentregionで全セル走査する
+
+Sub VBA_011()
+
+'けっこうがんばった！！
+'結合されているときのセルの名前の挙動を観察して実装し、検索を控えめにして実装を心がけた
+'マージセルというものを知った
+
+Dim i As Long, j As Long 'I=column j=row
+Dim temp As Variant 'temp=セル名
+
+For i = 1 To Range("A1").CurrentRegion.Columns.Count
+    For j = 1 To Range("A1").CurrentRegion.Rows.Count
+            
+        'Cells(j, i) = 999 'currentregionの範囲をひとつずつえらんでる
+        Cells(j, i).Select
+        temp = Cells(j, i).Address
+
+        
+        If Cells(j, i).Address = ActiveCell.Address Then
+            'もんだいなし
+        Else
+            
+            Range(temp).AddComment ["警告：セル結合"]
+            Range(temp).AddComment.Visible = True
+            
+        End If
+    Next j
+Next i
+
+End Sub
+
+
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'
+'セル結合されているかはRangeオブジェクトのMergeCellsプロパティで判断します｡
+'結合されている範囲はMergeAreaで取得します｡
+'コメントの追加は結合範囲の先頭セルに入れます｡
+'結合範囲の他のセルに入れても問題ありませんが､少々無駄な処理になってしまいます｡
+
+'MergeCellsプロパティは､
+'指定したセル範囲が､結合したセル､または､結合したセルの一部である場合はTrueを返します｡
+
+
+Sub VBA100_11_01()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    Dim rng As Range
+    
+    For Each rng In ws.Range("A1").CurrentRegion
+        If rng.MergeCells Then 'そのrngがセル結合していたらture
+            If rng.Address = rng.MergeArea(1).Address Then
+            '一個ずつ確認しているrngのセル番地　とセル結合してるアドレスといっしょなら
+            
+                If Not rng.Comment Is Nothing Then
+                '二重否定だが　コメント無し　ではないとき　＝こめんとあるとき
+                    rng.ClearComments
+                    'コメントを削除
+                End If
+                
+                'セルにコメントがついていない状態で下記を実行
+                rng.AddComment "セル結合NG"
+                rng.Comment.Shape.TextFrame.AutoSize = True
+                'コメントボックスのサイズ調整　これすると見やすい！
+                rng.Comment.Visible = True
+            
+            End If
+            '一個ずつ確認しているrngのセル番地　とセル結合してるアドレスといっしょではない
+            
+        End If 'セル結合していないとき
+    Next
+End Sub
+
+                
