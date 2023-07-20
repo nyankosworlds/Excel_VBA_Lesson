@@ -1,0 +1,67 @@
+Option Explicit
+
+ Sub VBA100_13_01()
+    If TypeName(Selection) <> "Range" Then
+        Exit Sub
+    End If
+    If Selection.CountLarge > Rows.Count Then
+        MsgBox "選択範囲が大きすぎます。"
+        Exit Sub
+    End If
+  
+    Const cns注意 = "注意"
+    Dim rng As Range
+    Dim ix As Long
+  
+    For Each rng In Selection
+        If Not rng.HasFormula Then
+            ix = 1
+            Do
+                ix = InStr(ix, rng.Value, cns注意)
+                If ix = 0 Then Exit Do
+                With rng.Characters(ix, Len(cns注意))
+                    .Font.Bold = True
+                    .Font.Color = vbRed
+                End With
+                ix = ix + Len(cns注意)
+            Loop
+        End If
+    Next
+End Sub
+
+ Sub VBA100_13_03()
+    Dim target As Range
+    On Error Resume Next
+    Set target = Intersect(Selection, Selection.SpecialCells(xlCellTypeConstants, xlTextValues))
+    If target Is Nothing Then Exit Sub
+  
+    Const cns注意 = "注意"
+  
+    Dim reg As Object
+    Set reg = CreateObject("VBScript.RegExp")
+  
+    Dim rng As Range
+    For Each rng In target
+        Call CharactersFont(rng, cns注意, reg)
+    Next
+  
+    Set reg = Nothing
+End Sub
+
+Sub CharactersFont(rng As Range, argStr As String, reg As Object)
+    Dim mc As Object
+    Dim m As Object
+  
+    With reg
+        .Pattern = argStr
+        .Global = True
+        Set mc = .Execute(rng.Value)
+    End With
+  
+    For Each m In mc
+        With rng.Characters(m.FirstIndex + 1, m.Length)
+            .Font.Bold = True
+            .Font.Color = vbRed
+        End With
+    Next
+End Sub
