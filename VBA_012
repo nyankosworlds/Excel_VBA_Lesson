@@ -1,0 +1,94 @@
+'#VBA100本ノック 12本目
+'A1から始まる表範囲のC列に金額が入っています｡
+'しかし､ところどころに結合されたセルがあります｡
+'セル結合を解除し、入っている金額を整数で均等に割り振ってください。（2枚目画像）
+'端数処理方法は任意とします｡
+'※結合セルには正の整数しか入っていません｡
+
+'マージセルの解除
+'値をマージしているセルのサイズで割付け
+'答えを整数にするため、intでいい？doubleつかわない？_
+
+
+Sub VBA_012()
+
+Dim i As Long, j As Long
+Dim temp  'セルの選択を保持
+Dim sell As Long ' 結合されているセルの数
+Dim ans As Integer 'ans = cells.valie / sell
+Dim k As Long '選択されているセルをループするための変数
+
+    For i = 1 To Range("A1").CurrentRegion.Columns.Count
+        For j = 1 To Range("A1").CurrentRegion.Rows.Count
+            
+            temp = Cells(j, i).Address
+            Cells(j, i).Select
+            
+            If Range(temp).MergeCells = False Then
+                'マージされていないとき何もしなくていい
+                
+            Else 'マージされているとき
+                'MsgBox Cells(j, i).Value
+                sell = ActiveCell.MergeArea.Rows.Count
+                ans = Cells(j, i).Value / sell
+                Range(temp).UnMerge
+                                
+                For k = 0 To sell - 1
+                    Cells(j, i).Offset(k, 0) = ans
+                Next k
+            End If
+             
+        Next j
+    Next i
+
+End Sub
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'セル結合の判定は､
+'MergeArea.Count > 1
+'これでも判定できます｡
+'結合範囲のセル数が > 1 なら結合されていることになります。
+'セル結合を解除するには､
+'Range.MergeCells = False
+'Range.UnMerge
+'上はプロパティ､下はメソッドです｡
+'シートやValue等､省略できるものは全て省略しました｡
+
+
+Sub VBA_12_01()
+    Dim rng As Range
+    Dim i As Long, v As Long, m As Long
+    For i = 2 To Cells(Rows.Count, 3).End(xlUp).Row
+        Set rng = Cells(i, 3).MergeArea
+        If rng.Count > 1 Then
+            rng.UnMerge
+            v = rng(1)
+            rng = Int(rng(1) / rng.Count) '割った後の値をrngに入れる
+            m = v - (rng(1) * rng.Count)  'ｍにはあまりをいれる　０とか１とかがはいる
+            If m <> 0 Then rng.Resize(m) = rng(1) + 1     '余りがあればそれをどっか一個にたすことですべてわりふる
+        End If
+    Next
+End Sub
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+
+Sub VBA100_12_02()
+
+Dim target As Range
+Set terget = ActiveSheet.Range("A1").CurrentRegion
+Set terget = Intersect(target, taeget.Offset(1, 2))
+
+
+    Dim rng As Range
+    Dim i As Long, v As Long, m As Long
+    For Each rng In target
+        If rng.MergeCells Then
+        Set rng = rng.MergeArea
+        rng.UnMerge
+        v = rng.Item(1)
+        rng.Value = Int(rng.Item(1) / rng.Count)
+        m = v - (rng.Item(1) * rng.Count)
+        If m <> 0 Then rng.Resize(m) = rng.Item(1) + 1
+        End If
+    Next
+End Sub
