@@ -7,7 +7,7 @@ Option Explicit
 '※シート間参照の数式あり｡
 '※条件付き書式・入力規則は未使用。
 '※対象はアクティブブックで構いません｡
-https://excel-ubara.com/vba100/VBA100_014.html
+'https://excel-ubara.com/vba100/VBA100_014.html
 '＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 Sub VBA_014()
 
@@ -72,7 +72,7 @@ End Sub
 
 
 '＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-Sub VBA_014()
+Sub VBA_014_2()
     Const cns社外秘 = "*社外秘*"  '定数
     Dim wb As Workbook
     Set wb = ActiveWorkbook
@@ -81,7 +81,7 @@ Sub VBA_014()
     
     If Not canDelete(wb, cns社外秘) Then 'canDeleteは下記でFunction作成している
         MsgBox "送付すべきシートを再確認してください。"
-        exitsub
+        Exit Sub
     End If
 
 
@@ -126,10 +126,50 @@ Function canDelete(ByVal wb As Workbook, ByVal aStr As String) As Boolean
     canDelete = False
 End Function
     
-    
-    
-    
-    
-    
-End Function
+    '社外秘シート以外の全ワークシート値貼り付け
+    Sub pasteValues(ByVal wb As Workbook, ByVal aStr As String)
+        '値渡しでwb（ワークブック）、aStr（str型）を受け取る
+        Dim ws As Worksheet
+        'wsをここで宣言｡
+        For Each ws In wb.Worksheets
+        'wb=ActiveWorkbookのなかのワークシートオブジェクトを１こずつ処理
+            If Not ws.name Like aStr Then
+                'もしワークシートの名前が　Like＊社外秘＊で判定し、Not　ならば
+                ''これが一番無難だと思います
+                ws.Cells.Copy   'ここでコピーしてるセル範囲はどうなってる？この書き方がどういう理屈化が気になる
+                'GPTくん曰く、Worksheets.Cells は、ワークシート内の全てのセルを表すオブジェクトです。
+                'コピー先が指定されていないのでクリップボードに保存されている
+                'そのシート内のすべてのセルを表すオブジェクトをクリップボードに保存
+                ws.Cells.PasteSpecial Paste:=xlPasteValues
+                '値で貼り付け
+            End If
+        Next
+        Application.CutCopyMode = False
+    End Sub
+
+
+'********************
+
+'社外秘シートを削除する
+Sub delSheets(ByVal wb As Workbook, ByVal aStr As String)
+    Dim sht As Object
+    For Each sht In wb.Sheets
+        If sht.name Like aStr Then
+            'xlSheetVeryHidden対策
+            sht.Visible = xlSheetVisible
+            sht.Delete
+        End If
+    Next
+End Sub
+
+'全シートを表示し、A1を選択しつつ先頭シートへ
+'いったん全てのシートを表示します。
+'非表示のまま客先へ変なものを送付してしまわないように！
+Sub AllSheetsGotoA1(ByVal wb As Workbook)
+    Dim i As Long
+    For i = wb.Worksheets.Count To 1 Step -1
+        wb.Worksheets(i).Visible = xlSheetVisible
+        Application.Goto wb.Worksheets(i).Range("A1"), True
+    Next
+End Sub
 
