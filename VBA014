@@ -1,0 +1,135 @@
+Option Explicit
+
+'#VBA100本ノック 14本目
+'客先へ送付するブックを作成します｡
+'シート名に「社外秘」の文字が含まれるシートを削除してください。
+'他のシートは計算式を消して値だけにしてください｡
+'※シート間参照の数式あり｡
+'※条件付き書式・入力規則は未使用。
+'※対象はアクティブブックで構いません｡
+https://excel-ubara.com/vba100/VBA100_014.html
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+Sub VBA_014()
+
+Dim ws As Long
+ws = Worksheets.Count
+Debug.Print ws
+Dim i As Long
+
+
+For i = 1 To ws 'ws数を取得しその回数分繰り返す　ブック数　ws
+     Sheets(i).Select
+     Sheets(i).Range("A1").CurrentRegion.Select
+
+     Selection.Copy
+    '計算式を消して値だけに変換する
+     Selection.PasteSpecial Paste:=xlPasteValues
+Next i
+
+Dim j As Long
+j = ws
+
+'ws数を取得しその回数分繰り返す
+'前から消したら、シート番号ズレてへんなことになるので
+'シート番号後ろから削除にした
+'IF　社外秘　のシートを削除（先に削除したらシートの数式が壊れるため）
+For j = ws To 1 Step -1
+    Dim name As Variant
+    name = Sheets(j).name
+    Dim key As String
+    key = "社外秘"
+    
+    Application.ScreenUpdating = False  '削除時のメッセージを消す
+    Application.DisplayAlerts = False
+    
+    If InStr(name, key) <> 0 Then
+        Debug.Print name
+        Sheets(j).Delete
+    End If
+
+Next j
+    Application.ScreenUpdating = True  '削除時のメッセージを出すようにする
+    Application.DisplayAlerts = True
+
+End Sub
+
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'#VBA100本ノック 14本目 解答
+'考え方中心に､
+'要点
+'・客先へ送付
+'・社外秘シートの削除
+'・値貼り付け
+'注意点
+'・シート削除の前に値貼り付けする
+'・シート削除できない場合がある
+'後者の件
+'・表示シートが無くなる
+'・xlSheetVeryHidden
+'最後に、非表示シートのまま内容確認しなくて良いのでしょうか?
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+Sub VBA_014()
+    Const cns社外秘 = "*社外秘*"  '定数
+    Dim wb As Workbook
+    Set wb = ActiveWorkbook
+    
+    '社外秘の前シート削除の可否
+    
+    If Not canDelete(wb, cns社外秘) Then 'canDeleteは下記でFunction作成している
+        MsgBox "送付すべきシートを再確認してください。"
+        exitsub
+    End If
+
+
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        '手動計算で入力したままの可能性があるのでいったん再計算
+        .Calculation = xlCalculationAutomatic
+        .Calculation = xlCalculationManual
+    End With
+    
+    '計算式はワークシートのみ
+    Call pasteValues(wb, cns社外秘)  ' pasteValues　を別途作ってる
+    
+    '削除は全種類のシートが対象
+    Call delSheets(wb, cns社外秘)  'delSheets　を別途作ってる
+    
+    'すべてのシートを表示し、A1を選択しつつ先頭シートへ
+    Call AllSheetsGotoA1(wb)   'AllSheetsGotoA1 を別途作ってる
+    
+    With Application
+        .Calculation = xlCalculationAutomatic
+        .DisplayAlerts = True
+        .ScreenUpdating = True
+    End With
+End Sub
+    
+'社外秘シート以外で表示されているシートの存在確認
+Function canDelete(ByVal wb As Workbook, ByVal aStr As String) As Boolean
+    '値渡しで、wb（ワークブック）とaStr(str型)を受け取る
+    'canDeleteはブーリアンなので　1/0が返る
+    Dim sht As Object  'ここでしか使わない変数はここでdimで宣言することでわかりやすくなる
+    canDelete = True  'trueで初期化
+    For Each sht In wb.Sheets
+        'wb = ActiveWorkbook のなかのオブジェクトshtを1こずつ処理
+        If sht.Visible And Not sht.name Like aStr Then
+        '表示されてるシート　and シート名Like *社外秘*　だったらfunciton終了（canDelete=ture）
+            Exit Function
+        End If
+    Next
+    '表示されてるシート　and シート名Like *社外秘*　以外だったら　消す対象なしだよ
+    canDelete = False
+End Function
+    
+    
+    
+    
+    
+    
+End Function
+
