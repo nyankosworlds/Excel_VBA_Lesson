@@ -17,20 +17,158 @@
 '        :=xlYes
 '
 
-
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 Sub VBA_017()
 
   Dim maxRow As Long
   maxRow = Sheets("社員").Cells(Rows.Count, 1).End(xlUp).Row
 
-Dim masta As Variant
-
 Sheets("部・課マスタ").Cells.Clear
 Sheets("社員").Range("C1:F" & maxRow).Copy Sheets("部・課マスタ").Range("A1")
 
- Sheets("部・課マスタ").Range("A1:D" & maxRow).RemoveDuplicates (Array(1, 2, 3, 4))
-
-Sheets("部・課マスタ").Sort.SortFields Key:=Range("A1"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
-
+ Sheets("部・課マスタ").Range("A1:D" & maxRow).RemoveDuplicates Columns:=Array(1, 2, 3, 4), Header:=xlYes
+Sheets("部・課マスタ").Sort.SortFields.Clear
+'Sheets("部・課マスタ").Sort.SortFields Key:=Range("A1"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    Sheets("部・課マスタ").Sort.SortFields.Add Key:=Range("A1"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    Sheets("部・課マスタ").Sort.SortFields.Add Key:=Range("B1"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    With Sheets("部・課マスタ").Sort
+        .SetRange Range("A1:D" & maxRow)
+        .Header = xlYes
+        '.MatchCase = False
+        .Orientation = xlTopToBottom
+        '.SortMethod = xlPinYin
+        .Apply
+    End With
 End Sub
 
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'ユニーク化する方法は沢山あります｡
+'・関数+（オートフィルター/1行ずつ抽出）
+'・並べ替えて上下比較
+'・Dictionaryを使う
+'・フィルターオプションの設定
+'・重複の削除
+'・ピボットテーブル
+'・Power Query
+'・UNIQUE関数
+'色々あますが､まずはフィルターオプションの設定から｡
+'フィルターオプションの設定は､あくまでユニーク化にも使えるということであって､
+'何十万件から重複データを消すというような場合はお勧めしません｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+ Sub VBA100_17_01()
+    Dim ws社員 As Worksheet
+    Dim ws部課 As Worksheet
+    Set ws社員 = Worksheets("社員")
+    Set ws部課 = Worksheets("部・課マスタ")
+  
+    ws部課.Cells.Clear
+    ws社員.Columns("C:F").AdvancedFilter Action:=xlFilterCopy, _
+                                         CopyToRange:=ws部課.Range("A1"), _
+                                         Unique:=True
+  
+    With ws部課
+        .Range("A1").CurrentRegion.Sort key1:=.Range("A1"), order1:=xlAscending, _
+                                        key2:=.Range("B1"), order2:=xlAscending, _
+                                        Header:=xlYes
+    End With
+End Sub
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'次にユニーク化と言ったらDictionaryが思い浮かんだ人も多いのではないでしょうか｡
+'Dictionaryは用途が広く､使い慣れると何かと便利です｡
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_17_02()
+    Dim ws社員 As Worksheet
+    Dim ws部課 As Worksheet
+    Set ws社員 = Worksheets("社員")
+    Set ws部課 = Worksheets("部・課マスタ")
+  
+    Dim dic As Object
+    Set dic = CreateObject("Scripting.Dictionary")
+  
+    Dim i As Long, tmp As String
+    With ws社員
+        For i = 2 To .Cells(.Rows.Count, 1).End(xlUp).Row
+            tmp = .Cells(i, 3) & vbTab & .Cells(i, 4)
+            If Not dic.exists(tmp) Then
+                dic.Add tmp, .Cells(i, 3).Resize(, 4).Value
+            End If
+        Next
+    End With
+  
+    ws部課.Range("A1").CurrentRegion.Offset(1).ClearContents
+    Dim j As Long, v As Variant
+    j = 2
+    For Each v In dic.items
+        ws部課.Cells(j, 1).Resize(, 4).Value = v
+        j = j + 1
+    Next
+  
+    With ws部課
+        .Range("A1").CurrentRegion.Sort key1:=.Range("A1"), order1:=xlAscending, _
+                                        key2:=.Range("B1"), order2:=xlAscending, _
+                                        Header:=xlYes
+    End With
+End Sub
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+'その他､関数 フィルター､並べ替えてから上下比較のVBAサンプルを記事補足に掲載しました｡
+'方法は沢山あるので､いろいろ挑戦してみると面白いと思います｡
+
+'並べ替えて上下比較
+'
+'対象となる列を全部コピーした後､
+'下行から上に向かって､上の行と同じなら行削除しています｡
+'データ件数が多いと処理時間がかなりかかってしまうので､件数が多い場合は別の方法を検討してください｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Sub VBA100_17_04()
+    Dim ws社員 As Worksheet
+    Dim ws部課 As Worksheet
+    Set ws社員 = Worksheets("社員")
+    Set ws部課 = Worksheets("部・課マスタ")
+  
+    ws部課.Cells.Clear
+    ws社員.Columns("C:F").Copy Destination:=ws部課.Range("A1")
+  
+    With ws部課.Sort
+        .SortFields.Clear
+        .SortFields.Add Key:=ws部課.Range("A1"), Order:=xlAscending
+        .SortFields.Add Key:=ws部課.Range("B1"), Order:=xlAscending
+        .SetRange ws部課.Range("A1").CurrentRegion
+        .Header = xlYes
+        .Apply
+    End With
+  
+    Dim i As Long
+    With ws部課
+        For i = .Cells(.Rows.Count, 1).End(xlUp).Row To 2 Step -1
+            If .Cells(i, 1) = .Cells(i - 1, 1) And _
+               .Cells(i, 2) = .Cells(i - 1, 2) Then
+                .Rows(i).Delete
+            End If
+        Next
+    End With
+End Sub
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'ピボットテーブル
+'VBAの今回のお題には向かないと思います｡
+'VBAで新規にピボットを作るのが大変です｡
+'事前にシートに作成しておけば､データの更新だけなので簡単です｡
+'マクロ VBA 100本ノック
+'
+'Power Query
+'このお題では他に簡単な方法があるので少々面倒な気がしますので割愛します｡
+'
+'UNIQUE関数
+'これが使えるなら（現時点で365なら）、これが最も簡単です。
+'
+'マクロ VBA 100本ノック
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
