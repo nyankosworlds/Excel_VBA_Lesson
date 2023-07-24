@@ -1,0 +1,36 @@
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'#VBA100本ノック 17本目
+'画像1のように部・課・氏名の「社員」シートがあります。
+'このデータを基に、画像2のように部・課マスタを作成してください。
+'※部・課でユニーク化するという事ことです。
+'シート「部・課マスタ」は存在している前提で構いません。
+'※マスタなのでコード順にしてください｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'C＆D列で重複削除
+'Cでソート　＆　Dでソート
+'部名称、課名称もふくめてマスタ用シートにコピー
+
+'マクロ記録
+
+'    Columns("C:F").Select
+'    ActiveSheet.Range("$C$1:$F$30").RemoveDuplicates Columns:=Array(1, 2), Header _
+'        :=xlYes
+'
+
+
+Sub VBA_017()
+
+  Dim maxRow As Long
+  maxRow = Sheets("社員").Cells(Rows.Count, 1).End(xlUp).Row
+
+Dim masta As Variant
+
+Sheets("部・課マスタ").Cells.Clear
+Sheets("社員").Range("C1:F" & maxRow).Copy Sheets("部・課マスタ").Range("A1")
+
+ Sheets("部・課マスタ").Range("A1:D" & maxRow).RemoveDuplicates (Array(1, 2, 3, 4))
+
+Sheets("部・課マスタ").Sort.SortFields Key:=Range("A1"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+
+End Sub
+
