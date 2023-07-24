@@ -1,3 +1,5 @@
+Option Explicit
+
 '#VBA100本ノック 16本目
 'セル内改行はAlt Enterですね｡
 '引数の文字列から無駄な改行（LF）を削除して返すFunctionを作成してください。
@@ -13,6 +15,7 @@
 '＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 '’’’’実装方針
 '改行コードを判定する　instr　改行には CR LF CRLF と3パターン
+' vbCr vbLF vbCRLF で調べる必要あり
 '改行コードごとにリプレイスする（２こつながっていたら、1個に置き換える）
 'instrの位置を参照し、また判定する　再判定の開始はinstr ひく　1回分の改行コード数
 
@@ -20,15 +23,193 @@
 'リプレイスする部分のパーツ　改行コードを変数にしてしまえばいいよね
 '＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
-Function VBA_015()
+Function VBA_016()
 
-Debug.Print cells(1, 1).Text
+    Dim word As String
+    Dim mark As String '改行コードは１つ入ってる
+    Dim mark2 As String
+    Dim wordans As String
+    Dim iti As Long '位置
+    
 
-If WorksheetFunction.Find(cells(1, 1), "\n\n") Then
-    'Replace(cells(1, 1), "\n\n", "\n")
-    VBA_015 = True
-End If
+'判定対象のセルをwordに入れる
+    word = Range("A1")
+    mark = ""  '初期化
 
-VBA_015 = False
+
+
+
+'改行コードがふたつ続いているものがあるかの判定
+'一番お尻の改行コードを削るのはできてるけど、途中の改行が減らせていない
+
+    If InStr(word, "\n") Then
+        mark = "\n"
+        mark2 = "\n\n"
+        iti = InStr(word, "\n\n")
+    End If
+
+
+    If InStr(word, vbCr + vbCr) Then
+        mark = "vbCr"
+        mark2 = "vbCrvbCr"
+        iti = InStr(word, vbCr + vbCr)
+    End If
+    
+    If InStr(word, vbLf + vbLf) Then
+        mark = "vbLf"
+        mark2 = "vbLfvbLf"
+        iti = InStr(word, vbLf + vbLf)
+    End If
+    
+    If InStr(word, vbCrLf + vbCrLf) Then
+        mark = "vbCrLf"
+        mark2 = "vbCrLfvbCrLf"
+        iti = InStr(word, vbCrLf + vbCrLf)
+    End If
+    
+
+    Debug.Print "****A1****"; word & mark & iti
+    wordans = WorksheetFunction.Substitute(word, mark2, mark)
+    
+    '普通のExcel側だとこれで想定の解が出ている
+    '=SUBSTITUTE(A1,"vbLfvbLf","vbLf")
+    
+    Debug.Print "***start***"; vbCr; wordans; vbCr; "***end***"
+    'Call MarkDelete(mark, word)
+    
+End Function
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'#VBA100本ノック 16本目 解答
+'文字列操作としては基本になります｡
+'・Do...Loop（再帰含む）
+'・正規表現
+'・Split+Join(TEXTJOIN含む)
+'・１文字ずつ処理
+'・その他
+'大きくわけるとこのようになると思います｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'まずは基本と言いますか、最も単純な方法のDo…Loopから。
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+Function VBA_016_01(ByVal arg As String) As String
+    arg = Replace(arg, vbCrLf, vbLf) 'CRLFはLFに変換する｡
+    
+    Dim oLen As Long 'oLenは数字型
+    
+    Do
+        oLen = Len(arg)  'oLenにargの長さ入れる
+        arg = Replace(arg, vbLf & vbLf, vbLf)  'vbLfがふたつあるとき、１つに置換し、argに入れる
+    Loop Until Len(arg) = oLen  '～になるまでくりかえす
+                                '置換前と置き換え後の文字数が同じ（＝置換対象がない）　になるまで繰り返す
+    
+    If Left(arg, 1) = vbLf Then arg = Mid(arg, 2) '左の1文字がvblfだったら、2文字目以降をargに入れる
+    If Right(arg, 1) = vbLf Then arg = Left(arg, Len(arg) - 1)  '右の一文字目がvblfだったら、一番右の文字以外をargに入れる
+    VBA_016_01 = arg
+
 
 End Function
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'文字列操作では必ず出てくる正規表現｡
+'なかなか使いこなすのは大変ですが､使えるととても便利です｡
+'すこしずつ慣れていければ良いと思います｡
+'Split Join､1文字ずつ処理､その他､これらのサンプルVBAは記事補足に掲載しました｡
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+
+Function VBA_016_02(ByVal arg As String) As String
+    With crateobject("VBAscript.EegExp")
+        .Global = True
+        .Pattern = "^\n|\n+$|\n+(?=\n)"
+        VBA_016_02 = .Replace(Replace(arg, vbCrLf, vbLf), "")
+    End With
+End Function
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'Split Join(TEXTJOIN含む)
+'Split関数でLFで分割して配列化してから処理するものです｡
+'この場合､LFLFとつづいている場合は､配列内に空の要素が出来てしまうので､これの対処が必要になります｡
+'
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Function VBA100_16_04(ByVal arg As String) As String
+    If arg = "" Then Exit Function
+    Dim i As Long, v As Variant
+    Dim ary() As String
+    ReDim ary(1 To Len(arg))
+    For Each v In Split(Replace(arg, vbCrLf, vbLf), vbLf)
+        i = i + 1
+        If v <> "" Then ary(i) = v & vbLf
+    Next
+    VBA100_16_04 = Join(ary, "")
+    VBA100_16_04 = Left(VBA100_16_04, Len(VBA100_16_04) - 1)
+End Function
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'Excel2016以降なら､シートのTEXTJOIN関数が使えます｡
+'これなら､空の要素を無視してくれるので､とても簡単に済みます｡
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Function VBA100_16_05(ByVal arg As String) As String
+    VBA100_16_05 = WorksheetFunction.TextJoin(vbLf, True, IIf(arg = "", "", Split(Replace(arg, vbCrLf, vbLf), vbLf)))
+End Function
+
+''＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'
+'1 文字ずつ処理
+'とにかく､自力で1文字ずつLFを処理していこうというものです｡
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Function VBA100_16_03(ByVal arg As String) As String
+    arg = Replace(arg, vbCrLf, vbLf)
+  
+    Dim rtn As String
+    Dim i As Long
+    Dim flgLF As Boolean
+    Dim flgOut As Boolean
+  
+    flgLF = False
+    For i = 1 To Len(arg)
+        flgOut = True
+        Select Case True
+            Case flgLF
+                flgLF = False
+            Case Mid(arg, i, 1) = vbLf
+                flgOut = False
+            Case Else
+                flgLF = True
+        End Select
+        If flgOut Then rtn = rtn & Mid(arg, i, 1)
+    Next
+  
+    If Right(rtn, 1) = vbLf Then rtn = Left(rtn, Len(rtn) - 1)
+    VBA100_16_03 = rtn
+End Function
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'今回のようなお題としては単純な処理は､方法が多種多用に存在します｡
+'私の想像の及ばない方法もあるかもしれません｡
+'以下は､シートのTrim関数を使った､ちょっとトリッキーな方法になります｡
+
+
+
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+ Function VBA100_16_06(ByVal arg As String) As String
+    arg = Replace(arg, vbCrLf, vbLf)
+    arg = Replace(arg, " ", Chr(1))
+    arg = Replace(arg, "　", Chr(2))
+  
+    arg = Replace(arg, vbLf, " ")
+    arg = WorksheetFunction.Trim(arg)
+    arg = Replace(arg, " ", vbLf)
+  
+    arg = Replace(arg, Chr(1), " ")
+    arg = Replace(arg, Chr(2), "　")
+    VBA100_16_06 = arg
+End Function
+
