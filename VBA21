@@ -1,0 +1,128 @@
+
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+'#VBA100本ノック 21本目
+'自身(ThisWorkbook)と同じフォルダに"BACKUP"フォルダがあります。
+'このフォルダ内に自身のバックアップが以下の名称で多数入っています｡
+'ブック名_yyyymmddhhmm.xlsm
+'実行日を含め30日分だけ残し､古いファイルは削除してください｡
+'※日付はファイル名で判断
+'＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+'BACKUPに入ってるｗｂを１つずつ判定for each?
+'wb.nameからwbdateを取得yyyymmdd形式で取得する
+'today - 30 > wbdate　だったら　wbをデリート
+'else だったらそのまま。
+
+
+Sub VBA021()
+
+Dim path As String
+Dim wb As Workbook
+Dim wbname As String
+Dim wbdate As String
+Dim DeleteDay As String
+DeleteDay = Format(Date - 30, "yyyymmdd")
+
+Set wb = ThisWorkbook
+path = wb.path & "\BACKUP"
+
+
+Debug.Print path
+
+wbname = Left(wb.name, InStrRev(wb.name, ".") - 1) 'VBA20
+
+Debug.Print "wbname :"; wbname
+
+If Dir(path, vbDirectory) = "" Then
+    Exit Sub
+End If
+
+Dim testFile As String
+testFile = Dir(path & "\" & wb.name, InStrRev(wb.name, ".") + 1)
+
+Debug.Print "testfile :"; testFile
+
+Do Until testFile = ""
+    If testFile Like wbname & "_############.*" Then
+        If Mid(testFile, InStrRev(testFile, "_") + 1, 8) <= DeleteDay Then
+            On Error Resume Next
+            Kill oath & "\" & testFile
+        End If
+    End If
+
+    testFile = Dir()
+Loop
+
+
+End Sub
+
+
+
+Sub VBA100_21_01()
+    Dim wb As Workbook
+    Dim delLastDay As String
+    Set wb = ThisWorkbook
+    delLastDay = Format(Date - 30, "yyyymmdd")
+  
+    Dim sPath As String
+    Dim sFile As String
+    Dim sExt As String
+    sPath = wb.path & "\BACKUP"
+Debug.Print "sPath : "; sPath
+Debug.Print "wb/path : "; wb.path; "  wb/name : "; wb.name
+
+    If Dir(wb.path, vbDirectory) = "" Then Exit Sub
+    
+Debug.Print "dir : "; Dir(wb.path, vbDirectory)
+    
+    sExt = Mid(wb.name, InStrRev(wb.name, ".") + 1)  '.以降　拡張子　xlsm
+    sFile = Left(wb.name, InStrRev(wb.name, ".") - 1)  'ファイル名　VBA20
+Debug.Print "sExt :"; sExt
+Debug.Print "sFile :"; sFile
+
+      
+  
+  
+    Dim tFile As String
+    tFile = Dir(sPath & "\" & sFile & "_*." & sExt)
+    Debug.Print "tFile :"; tFile
+    
+    Do Until tFile = ""
+        If tFile Like sFile & "_############." & sExt Then  'ファイル名がこうだったら
+            If Mid(tFile, InStrRev(tFile, "_") + 1, 8) <= delLastDay Then    '古さ調べる
+                On Error Resume Next
+                Kill sPath & "\" & tFile  '古かったらキル
+            End If
+        End If
+        tFile = Dir()
+    Loop
+End Sub
+
+
+ Sub VBA100_21_01_1()
+    Dim wb As Workbook
+    Dim delLastDay As String
+    Set wb = ThisWorkbook
+    delLastDay = Format(Date - 30, "yyyymmdd")
+  
+    Dim sPath As String
+    Dim sFile As String
+    Dim sExt As String
+    sPath = wb.path
+    If Dir(sPath, vbDirectory) = "" Then Exit Sub '配下のフォルダ＝””だったらおわり。BKUPフォルダがあったら次へ
+    sExt = Mid(wb.name, InStrRev(wb.name, ".") + 1)
+    sFile = Left(wb.name, InStrRev(wb.name, ".") - 1)
+  
+    Dim tFile As String
+    tFile = Dir(sPath & "\" & sFile & "_*." & sExt)
+    Do Until tFile = ""
+        If tFile Like sFile & "_############." & sExt Then
+            If Mid(tFile, InStrRev(tFile, "_") + 1, 8) <= delLastDay Then
+                On Error Resume Next
+                Kill sPath & "\" & tFile
+            End If
+        End If
+        tFile = Dir()
+    Loop
+End Sub
+
